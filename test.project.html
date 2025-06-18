@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎹 Recordable Music Pad BY Vivek Verma </title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.2.6/Tone.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      background: #626add;
+      color: rgb(206, 109, 109);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #e7c176;
+    }
+
+    .pad-container {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .pad, .control {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      border: 2px solid #00ffe7;
+      background: #1e1e1e;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .pad:hover, .control:hover {
+      background: #00ffe7;
+      color: #121212;
+      transform: scale(1.05);
+    }
+
+    .control-container {
+      display: flex;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎹 Record & Play Music Pad</h1>
+
+  <div class="pad-container">
+    <div class="pad" data-note="C4">C</div>
+    <div class="pad" data-note="D4">D</div>
+    <div class="pad" data-note="E4">E</div>
+    <div class="pad" data-note="G4">G</div>
+    <div class="pad" data-note="B4">B</div>
+  </div>
+
+  <div class="control-container">
+    <div class="control" id="record">🔴 Rec</div>
+    <div class="control" id="play">▶️ Play</div>
+    <div class="control" id="clear">🗑️ Clear</div>
+  </div>
+
+  <script>
+    // Synth object create karo and connect it to the destination (speakers)
+    const synth = new Tone.Synth().toDestination();
+
+    let isRecording = false; // recording mode on/off
+    let sequence = [];       // note + time ka array
+    let startTime = 0;       // recording start time
+
+    // Function to play note + record if needed
+    async function handlePlay(pad) {
+      if (Tone.context.state !== 'running') {
+        await Tone.start(); // Audio context start karo if not started
+      }
+
+      const note = pad.getAttribute('data-note');
+      synth.triggerAttackRelease(note, '8n');
+
+      // Agar recording on hai to note + timestamp save karo
+      if (isRecording) {
+        const time = Date.now() - startTime;
+        sequence.push({ note, time });
+      }
+    }
+// block 2 
+    // Pad buttons par click aur hover dono par music bajao
+    document.querySelectorAll('.pad').forEach(pad => {
+      pad.addEventListener('click', () => handlePlay(pad));
+      pad.addEventListener('mouseenter', () => handlePlay(pad));
+    });
+// block 3 
+    // Record button logic
+    document.getElementById('record').addEventListener('click', () => {
+      isRecording = true;
+      sequence = [];
+      startTime = Date.now();
+      alert("Recording started... 🎤");
+    });
+    
+// block 4 
+    // Play button logic
+    document.getElementById('play').addEventListener('click', async () => {
+      if (Tone.context.state !== 'running') {
+        await Tone.start();
+      }
+
+      if (sequence.length === 0) return alert("Nothing recorded!");
+
+      // Saved notes ko unke recorded time pe bajao
+      sequence.forEach(({ note, time }) => {
+        setTimeout(() => {
+          synth.triggerAttackRelease(note, '8n');
+        }, time);
+      });
+    });
+
+    // Clear button logic
+    document.getElementById('clear').addEventListener('click', () => {
+      sequence = [];
+      isRecording = false;
+      alert("Recording cleared.");
+    });
+  </script>
+</body>
+</html>
